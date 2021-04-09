@@ -1,5 +1,5 @@
 {
-	"name": "TESTrun",
+	"name": "lang-playground_2",
 	"properties": {
 		"nbformat": 4,
 		"nbformat_minor": 2,
@@ -52,68 +52,29 @@
 			{
 				"cell_type": "code",
 				"source": [
+					"val x: Map[String,Int] = Map( \n",
+					"    \"a\" -> 3000,\n",
+					"    \"b\" -> 3000,\n",
+					"    \"c\" -> 3000\n",
+					")\n",
+					"def sleepandcal (ms: Int) = { \n",
+					"    Thread.sleep(ms)\n",
+					"    java.util.Calendar.getInstance().getTimeInMillis\n",
+					"}\n",
+					"val y = x.par.map(x => \n",
+					"(x._1, sleepandcal(x._2))\n",
 					"\n",
-					"// val x: Map[String,Int] = Map( \n",
-					"//     \"a\" -> 3000,\n",
-					"//     \"b\" -> 3000,\n",
-					"//     \"c\" -> 3000\n",
-					"// )\n",
-					"// def sleepandcal (ms: Int) = { \n",
-					"//     Thread.sleep(ms)\n",
-					"//     java.util.Calendar.getInstance().getTimeInMillis\n",
-					"// }\n",
-					"// val y = x.par.map(x => \n",
-					"// (x._1, sleepandcal(x._2))\n",
-					"\n",
-					"// )\n",
-					"// val z =y(\"a\")"
+					")\n",
+					"val z =y(\"a\")"
 				],
-				"execution_count": 1
+				"execution_count": 16
 			},
 			{
 				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					},
-					"collapsed": true
-				},
 				"source": [
 					""
 				],
-				"execution_count": null
-			},
-			{
-				"cell_type": "code",
-				"source": [
-					"%run \"lang-playground\""
-				],
-				"execution_count": 2
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					},
-					"collapsed": true
-				},
-				"source": [
-					"val blah = z"
-				],
-				"execution_count": 3
+				"execution_count": 10
 			}
 		]
 	}
