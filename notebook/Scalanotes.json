@@ -1,0 +1,82 @@
+{
+	"name": "Scalanotes",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "testpool",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"language_info": {
+				"name": "scala"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+				"name": "testpool",
+				"type": "Spark",
+				"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "2.4",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28
+			}
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"        // https://alvinalexander.com/scala/how-to-access-map-values-getorelse-scala-cookbook/\n",
+					"        // https://stackoverflow.com/questions/13868465/idiomatic-way-to-reduce-a-list-of-pairs-to-a-map-of-keys-and-their-aggregated-co\n",
+					"     // https://www.geeksforgeeks.org/scala-reduce-function/\n",
+					"\n",
+					"\n",
+					"val map = Map(\"a\" -> \"b\", \"c\" -> \"d\")\n",
+					"val map2 =  map.par.map(x => (x._1, x._2 + \"hello\"))\n",
+					"\n",
+					"\n",
+					"//Array of elements to a map\n",
+					"val array = Array(\"a\",\"b\",\"c\",\"d\")\n",
+					"val testMap = array.zipWithIndex.map(a => (a._1, a._1 + \"hello\"))\n",
+					"\n",
+					"val x = array.reduce( (a,b) => a + b )\n",
+					"val map = Map( \"a\" -> \"b\", \"c\" -> \"d\")\n",
+					"map.reduce((a,b) => a + b)\n",
+					"// val mapFromArray = array.toMap().par.map(x => \"hello\")\n",
+					"\n",
+					"        "
+				],
+				"execution_count": 3
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"val dayFormat = new java.text.SimpleDateFormat(\"yyyyMMdd\")\n",
+					"val timeFormat = new java.text.SimpleDateFormat(\"HHmmss\")\n",
+					"val now = java.util.Calendar.getInstance()\n",
+					"\n",
+					"val today = dayFormat.format(now.getTime())\n",
+					"val time = timeFormat.format(now.getTime())"
+				],
+				"execution_count": 39
+			}
+		]
+	}
+}

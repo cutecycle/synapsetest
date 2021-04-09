@@ -1,0 +1,16 @@
+{
+	"name": "SQL script 2",
+	"properties": {
+		"content": {
+			"query": "-- CREATE EXTERNAL TABLE [dbo].[vgsales]\n\n-- WITH\n-- (\n-- \tLOCATION = 'https://ninasdatalake.blob.core.windows.net/test',\n-- \tDATA_SOURCE = [vgsales.csv],\n-- \tFILE_FORMAT = [csv]\n-- )\nCREATE EXTERNAL DATA SOURCE vgsales\nWITH\n(    LOCATION         = 'https://ninasdatalake.blob.core.windows.net/test/vgsales.csv'\n    --  [, CREDENTIAL = <database scoped credential> ]\n)\n-- [;]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"poolName": "Built-in",
+				"databaseName": "testsql"
+			}
+		},
+		"type": "SqlQuery"
+	}
+}

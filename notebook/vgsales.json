@@ -1,0 +1,223 @@
+{
+	"name": "vgsales",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "testpool",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"synapse_widget": {
+				"version": "0.1"
+			},
+			"kernelspec": {
+				"name": "synapse_spark",
+				"display_name": "Synapse Spark"
+			},
+			"language_info": {
+				"name": "scala"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+				"name": "testpool",
+				"type": "Spark",
+				"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "2.4",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"extraHeader": null
+			}
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"metadata": {
+					"diagram": {
+						"activateDiagramType": 1,
+						"chartConfig": {
+							"category": "bar",
+							"keys": [
+								"_c0"
+							],
+							"values": [
+								"_c0"
+							],
+							"yLabel": "_c0",
+							"xLabel": "_c0",
+							"aggregation": "COUNT",
+							"aggByBackend": false
+						},
+						"aggData": "{\"_c0\":{\"1\":1,\"2\":1,\"3\":1,\"4\":1,\"5\":1,\"6\":1,\"7\":1,\"8\":1,\"9\":1,\"Rank\":1}}",
+						"isSummary": false,
+						"previewData": {
+							"filter": null
+						},
+						"isSql": false
+					}
+				},
+				"source": [
+					"import org.apache.spark.sql.SparkSession\n",
+					"\n",
+					"//https://docs.databricks.com/getting-started/spark/datasets.html#process-and-visualize-the-dataset\n",
+					"//https://spark.apache.org/docs/latest/quick-start.html#basics\n",
+					"\n",
+					"\n",
+					"// val spark = SparkSession.builder.appName(\"hello\").getOrCreate()\n",
+					"\n",
+					"val df = spark.read.format(\"csv\").option(\"header\",\"true\").load(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/vgsales.csv\")\n",
+					"df.show()\n",
+					"// THIS IS THE SAUCE https://spark.apache.org/docs/2.4.0/api/java/org/apache/spark/sql/Dataset.html\n",
+					"\n",
+					"//  df.rdd.map(x => x).show()\n",
+					"val filter = df.filter(\"NA_Sales > 20\")\n",
+					"\n",
+					"val x = df.col(\"NA_Sales\")\n",
+					"// val y = df.map(a => \n",
+					"// a(0) + \"1\"\n",
+					"// ) \n",
+					"// val z = df.map(a => a.getAs(\"NA_Sales\") + \"13\")\n",
+					"\n",
+					"// val c = df.withColumn(\"helloworld\", \"a\")\n",
+					"\n",
+					"val a = df.where(\"NA_Sales > 30\")\n",
+					"val b = df.where(\"NA_Sales < 5\")\n",
+					"val c = df.groupBy(\"NA_Sales\")\n",
+					"\n",
+					"a.show()\n",
+					"b.show()\n",
+					"df.\n",
+					"// c.show()\n",
+					"// def testfunc(a: Column): Column  = {\n",
+					"// //https://stackoverflow.com/questions/58823628/call-a-function-for-each-row-of-a-dataframe-in-pysparknon-pandas\n",
+					"// a + 10\n",
+					"// }\n",
+					"// val d = df.withColumn(\"NA_Sales\", testfunc(col(\"NA_Sales\")))\n",
+					"\n",
+					"\n",
+					"// z.show()\n",
+					"\n",
+					"\n",
+					"// val x = df.map(x => x)\n",
+					""
+				],
+				"attachments": null,
+				"execution_count": 1
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"\n",
+					"\n",
+					"//NOTES: this has a map on a dataframe https://spark.apache.org/docs/2.2.0/sql-programming-guide.html#inferring-the-schema-using-reflection\n",
+					"// https://databricks.com/blog/2016/07/14/a-tale-of-three-apache-spark-apis-rdds-dataframes-and-datasets.html\n",
+					"\n",
+					"//BIG NOTES: here's a guiy who actually talks about using a map too https://stackoverflow.com/a/57428370/11832338\n",
+					"// BIG NOTE: THIS ONE HAS A MULTIDIMENSIONAL DATASET? dataset is the key here; it's the new RDD https://spark.apache.org/docs/latest/sql-getting-started.html#creating-datasets\n",
+					"\n",
+					"\n",
+					"val nasales=df.filter(\"NA_Sales > 30\")\n",
+					"val test = df.map(a => \n",
+					"    if(a.getAs(\"Platform\") == \"Wii\") {\n",
+					"        \"🥡\"\n",
+					"    } else { \n",
+					"    \"f\"\n",
+					"    }\n",
+					")\n",
+					"\n",
+					"\n",
+					"\n",
+					"val test3 = df.withColumn(\"emoji\", when($\"Platform\" === \"Wii\", \"🥡\"))\n",
+					"val test3a = df.withColumn(\"emoji\", when($\"Platform\" === \"Wii\", \"🥡\").otherwise(\"f\"))\n",
+					"val leadingZero = df.withColumn(\"leadingZeroes\", lit(\"00003\"))\n",
+					"val leadingZero_cleared = leadingZero.withColumn(\"leadingZeroes\", regexp_replace(col(\"leadingZeroes\"),\"0+\",\"\"))\n",
+					"\n",
+					"val x = new scala.util.Random().nextInt()\n",
+					"test.show()\n",
+					"test3.show()\n",
+					"test3a.show()\n",
+					"test3a.explain()\n",
+					"leadingZero.show()\n",
+					"leadingZero_cleared.show()"
+				],
+				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"// kmeans test\n",
+					"val kmeans = new KMeans().setk(2).setSeed(1L)\n",
+					"\n",
+					"val model = kmeans.fit(df)\n",
+					"val predictions = model.transform(df)\n",
+					"\n",
+					"// Evaluate clustering by computing Silhouette score\n",
+					"val evaluator = new ClusteringEvaluator()\n",
+					"\n",
+					"val silhouette = evaluator.evaluate(predictions)\n",
+					"println(s\"Silhouette with squared euclidean distance = $silhouette\")\n",
+					"\n",
+					"// Shows the result.\n",
+					"println(\"Cluster Centers: \")\n",
+					"model.clusterCenters.foreach(println)"
+				],
+				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": true
+				},
+				"source": [
+					"//Select except\r\n",
+					"val a = Seq(\r\n",
+					"    (\"1\",\r\n",
+					"    \"3\")\r\n",
+					").toDF(\"One\",\"Three\")\r\n",
+					"\r\n",
+					"val b = Seq(\r\n",
+					"    (\"3\",\r\n",
+					"    \"1\")\r\n",
+					").toDF(\"One\",\"Three\")\r\n",
+					"\r\n",
+					"a.createOrReplaceTempView(\"a\")\r\n",
+					"b.createOrReplaceTempView(\"b\")\r\n",
+					"spark.sql(\"select * from a except select * from b \")\r\n",
+					"\r\n",
+					""
+				],
+				"attachments": null,
+				"execution_count": 1
+			}
+		]
+	}
+}

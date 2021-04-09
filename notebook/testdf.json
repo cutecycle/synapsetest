@@ -1,0 +1,66 @@
+{
+	"name": "testdf",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "testpool",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"language_info": {
+				"name": "scala"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+				"name": "testpool",
+				"type": "Spark",
+				"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "2.4",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28
+			}
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"// val schema = StructType( Array(\n",
+					"//                  StructField(\"language\", StringType,true),\n",
+					"//                  StructField(\"language\", StringType,true)\n",
+					"//              ))\n",
+					"\n",
+					"\n",
+					"// val data = Seq(Row(\"a\",\"b\"))\n",
+					"val data = Seq((\"111\",50000),(\"222\",60000),(\"333\",40000))\n",
+					"val data2 = Seq((\"1\",\"2\",\"3\",\"4\",\"5\")).toDF(\"hello\",\"world\",\"wow\",\"asdf\",\"asdfasdf\")\n",
+					"// val empty = spark.createDataFrame(Seq.empty[String,String])"
+				],
+				"execution_count": 14
+			},
+			{
+				"cell_type": "code",
+				"source": [],
+				"execution_count": null
+			}
+		]
+	}
+}
