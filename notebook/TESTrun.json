@@ -85,7 +85,7 @@
 					"collapsed": true
 				},
 				"source": [
-					""
+					"%run \"lang-playground_2\""
 				],
 				"execution_count": null
 			},
