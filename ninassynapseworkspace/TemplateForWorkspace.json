@@ -1,0 +1,1281 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "ninassynapseworkspace"
+		},
+		"ninassynapseworkspace-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ninassynapseworkspace-WorkspaceDefaultSqlServer'"
+		},
+		"ninassynapseworkspace-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://ninasdatalake.dfs.core.windows.net"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/Dataset')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ninassynapseworkspace-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "synapse",
+						"fileSystem": "synapse"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ninassynapseworkspace-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ninassynapseworkspace-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('ninassynapseworkspace-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ninassynapseworkspace-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ninassynapseworkspace-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 1')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "select top 10 *\nfrom openrowset(\n    bulk 'https://pandemicdatalake.blob.core.windows.net/public/curated/covid-19/ecdc_cases/latest/ecdc_cases.parquet',\n    format = 'parquet') as rows",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"poolName": "Built-in",
+						"databaseName": "testsql"
+					}
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 2')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- CREATE EXTERNAL TABLE [dbo].[vgsales]\n\n-- WITH\n-- (\n-- \tLOCATION = 'https://ninasdatalake.blob.core.windows.net/test',\n-- \tDATA_SOURCE = [vgsales.csv],\n-- \tFILE_FORMAT = [csv]\n-- )\nCREATE EXTERNAL DATA SOURCE vgsales\nWITH\n(    LOCATION         = 'https://ninasdatalake.blob.core.windows.net/test/vgsales.csv'\n    --  [, CREDENTIAL = <database scoped credential> ]\n)\n-- [;]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"poolName": "Built-in",
+						"databaseName": "testsql"
+					}
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/vgsales')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- CREATE EXTERNAL TABLE [dbo].[vgsales]\n\n-- WITH\n-- (\n-- \tLOCATION = 'https://ninasdatalake.blob.core.windows.net/test',\n-- \tDATA_SOURCE = [vgsales.csv],\n-- \tFILE_FORMAT = [csv]\n-- )\nCREATE EXTERNAL DATA SOURCE vgsales\nWITH\n(    LOCATION         = 'https://ninasdatalake.blob.core.windows.net/test/vgsales.csv'\n    --  [, CREDENTIAL = <database scoped credential> ]\n)\n-- [;]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"poolName": "Built-in",
+						"databaseName": "testsql"
+					}
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Notebook 1')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"language_info": {
+						"name": "scala"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+						"name": "testpool",
+						"type": "Spark",
+						"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					}
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {
+							"diagram": {
+								"activateDiagramType": 1,
+								"chartConfig": {
+									"category": "bar",
+									"keys": [
+										"_c0"
+									],
+									"values": [
+										"_c0"
+									],
+									"yLabel": "_c0",
+									"xLabel": "_c0",
+									"aggregation": "COUNT",
+									"aggByBackend": false
+								},
+								"aggData": "{\"_c0\":{\"2014-7-1\":1,\"2014-7-2\":1,\"2014-7-3\":1,\"2014-7-4\":1,\"2014-7-5\":1,\"2014-7-6\":1,\"2014-7-7\":1,\"2014-7-8\":1,\"2014-7-9\":1,\"date\":1}}",
+								"isSummary": false,
+								"previewData": {
+									"filter": null
+								},
+								"isSql": false
+							}
+						},
+						"source": [
+							"\n",
+							"val df = spark.read.format(\"csv\").load(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/KCLT.csv\")\n",
+							"display(df.limit(10))"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 8
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Notebook 2')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+						"name": "testpool",
+						"type": "Spark",
+						"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					}
+				},
+				"cells": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Notebook 2_Copy1')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "mypool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"language_info": {
+						"name": "scala"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/mypool",
+						"name": "mypool",
+						"type": "Spark",
+						"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/mypool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					}
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"\n",
+							"df = spark.read.load('abfss://synapse@ninasdatalake.dfs.core.windows.net/vgsales.csv', format='csv'\n",
+							"## If header exists uncomment line below\n",
+							"##, header=True\n",
+							")\n",
+							"display(df.limit(10))"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Scalanotes')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"language_info": {
+						"name": "scala"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+						"name": "testpool",
+						"type": "Spark",
+						"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					}
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"        // https://alvinalexander.com/scala/how-to-access-map-values-getorelse-scala-cookbook/\n",
+							"        // https://stackoverflow.com/questions/13868465/idiomatic-way-to-reduce-a-list-of-pairs-to-a-map-of-keys-and-their-aggregated-co\n",
+							"     // https://www.geeksforgeeks.org/scala-reduce-function/\n",
+							"\n",
+							"\n",
+							"val map = Map(\"a\" -> \"b\", \"c\" -> \"d\")\n",
+							"val map2 =  map.par.map(x => (x._1, x._2 + \"hello\"))\n",
+							"\n",
+							"\n",
+							"//Array of elements to a map\n",
+							"val array = Array(\"a\",\"b\",\"c\",\"d\")\n",
+							"val testMap = array.zipWithIndex.map(a => (a._1, a._1 + \"hello\"))\n",
+							"\n",
+							"val x = array.reduce( (a,b) => a + b )\n",
+							"val map = Map( \"a\" -> \"b\", \"c\" -> \"d\")\n",
+							"map.reduce((a,b) => a + b)\n",
+							"// val mapFromArray = array.toMap().par.map(x => \"hello\")\n",
+							"\n",
+							"        "
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"val dayFormat = new java.text.SimpleDateFormat(\"yyyyMMdd\")\n",
+							"val timeFormat = new java.text.SimpleDateFormat(\"HHmmss\")\n",
+							"val now = java.util.Calendar.getInstance()\n",
+							"\n",
+							"val today = dayFormat.format(now.getTime())\n",
+							"val time = timeFormat.format(now.getTime())"
+						],
+						"outputs": [],
+						"execution_count": 39
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/TESTrun')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1",
+						"state": {}
+					},
+					"kernelspec": {
+						"name": "synapse_spark",
+						"display_name": "scala"
+					},
+					"language_info": {
+						"name": "scala"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+						"name": "testpool",
+						"type": "Spark",
+						"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"automaticScaleJobs": false
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"\n",
+							"// val x: Map[String,Int] = Map( \n",
+							"//     \"a\" -> 3000,\n",
+							"//     \"b\" -> 3000,\n",
+							"//     \"c\" -> 3000\n",
+							"// )\n",
+							"// def sleepandcal (ms: Int) = { \n",
+							"//     Thread.sleep(ms)\n",
+							"//     java.util.Calendar.getInstance().getTimeInMillis\n",
+							"// }\n",
+							"// val y = x.par.map(x => \n",
+							"// (x._1, sleepandcal(x._2))\n",
+							"\n",
+							"// )\n",
+							"// val z =y(\"a\")"
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"%run \"lang-playground_2\""
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"%run \"lang-playground\""
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"val blah = z"
+						],
+						"outputs": [],
+						"execution_count": 3
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/lang-playground')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"language_info": {
+						"name": "scala"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+						"name": "testpool",
+						"type": "Spark",
+						"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					}
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"val x: Map[String,Int] = Map( \n",
+							"    \"a\" -> 3000,\n",
+							"    \"b\" -> 3000,\n",
+							"    \"c\" -> 3000\n",
+							")\n",
+							"def sleepandcal (ms: Int) = { \n",
+							"    Thread.sleep(ms)\n",
+							"    java.util.Calendar.getInstance().getTimeInMillis\n",
+							"}\n",
+							"val y = x.par.map(x => \n",
+							"(x._1, sleepandcal(x._2))\n",
+							"\n",
+							")\n",
+							"val z =y(\"a\")"
+						],
+						"outputs": [],
+						"execution_count": 16
+					},
+					{
+						"cell_type": "code",
+						"source": [],
+						"outputs": [],
+						"execution_count": 10
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/lang-playground_2')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1"
+					},
+					"kernelspec": {
+						"name": "synapse_spark",
+						"display_name": "scala"
+					},
+					"language_info": {
+						"name": "scala"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+						"name": "testpool",
+						"type": "Spark",
+						"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					}
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"val x: Map[String,Int] = Map( \n",
+							"    \"a\" -> 3000,\n",
+							"    \"b\" -> 3000,\n",
+							"    \"c\" -> 3000\n",
+							")\n",
+							"def sleepandcal (ms: Int) = { \n",
+							"    Thread.sleep(ms)\n",
+							"    java.util.Calendar.getInstance().getTimeInMillis\n",
+							"}\n",
+							"val y = x.par.map(x => \n",
+							"(x._1, sleepandcal(x._2))\n",
+							"\n",
+							")\n",
+							"val z =y(\"a\")"
+						],
+						"outputs": [],
+						"execution_count": 16
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							""
+						],
+						"outputs": [],
+						"execution_count": 10
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/scaladate')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+						"name": "testpool",
+						"type": "Spark",
+						"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					}
+				},
+				"cells": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/testdf')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"language_info": {
+						"name": "scala"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+						"name": "testpool",
+						"type": "Spark",
+						"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					}
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"// val schema = StructType( Array(\n",
+							"//                  StructField(\"language\", StringType,true),\n",
+							"//                  StructField(\"language\", StringType,true)\n",
+							"//              ))\n",
+							"\n",
+							"\n",
+							"// val data = Seq(Row(\"a\",\"b\"))\n",
+							"val data = Seq((\"111\",50000),(\"222\",60000),(\"333\",40000))\n",
+							"val data2 = Seq((\"1\",\"2\",\"3\",\"4\",\"5\")).toDF(\"hello\",\"world\",\"wow\",\"asdf\",\"asdfasdf\")\n",
+							"// val empty = spark.createDataFrame(Seq.empty[String,String])"
+						],
+						"outputs": [],
+						"execution_count": 14
+					},
+					{
+						"cell_type": "code",
+						"source": [],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/vgsales')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1"
+					},
+					"kernelspec": {
+						"name": "synapse_spark",
+						"display_name": "Synapse Spark"
+					},
+					"language_info": {
+						"name": "scala"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+						"name": "testpool",
+						"type": "Spark",
+						"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"extraHeader": null
+					}
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {
+							"diagram": {
+								"activateDiagramType": 1,
+								"chartConfig": {
+									"category": "bar",
+									"keys": [
+										"_c0"
+									],
+									"values": [
+										"_c0"
+									],
+									"yLabel": "_c0",
+									"xLabel": "_c0",
+									"aggregation": "COUNT",
+									"aggByBackend": false
+								},
+								"aggData": "{\"_c0\":{\"1\":1,\"2\":1,\"3\":1,\"4\":1,\"5\":1,\"6\":1,\"7\":1,\"8\":1,\"9\":1,\"Rank\":1}}",
+								"isSummary": false,
+								"previewData": {
+									"filter": null
+								},
+								"isSql": false
+							}
+						},
+						"source": [
+							"import org.apache.spark.sql.SparkSession\n",
+							"\n",
+							"//https://docs.databricks.com/getting-started/spark/datasets.html#process-and-visualize-the-dataset\n",
+							"//https://spark.apache.org/docs/latest/quick-start.html#basics\n",
+							"\n",
+							"\n",
+							"// val spark = SparkSession.builder.appName(\"hello\").getOrCreate()\n",
+							"\n",
+							"val df = spark.read.format(\"csv\").option(\"header\",\"true\").load(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/vgsales.csv\")\n",
+							"df.show()\n",
+							"// THIS IS THE SAUCE https://spark.apache.org/docs/2.4.0/api/java/org/apache/spark/sql/Dataset.html\n",
+							"\n",
+							"//  df.rdd.map(x => x).show()\n",
+							"val filter = df.filter(\"NA_Sales > 20\")\n",
+							"\n",
+							"val x = df.col(\"NA_Sales\")\n",
+							"// val y = df.map(a => \n",
+							"// a(0) + \"1\"\n",
+							"// ) \n",
+							"// val z = df.map(a => a.getAs(\"NA_Sales\") + \"13\")\n",
+							"\n",
+							"// val c = df.withColumn(\"helloworld\", \"a\")\n",
+							"\n",
+							"val a = df.where(\"NA_Sales > 30\")\n",
+							"val b = df.where(\"NA_Sales < 5\")\n",
+							"val c = df.groupBy(\"NA_Sales\")\n",
+							"\n",
+							"a.show()\n",
+							"b.show()\n",
+							"df.\n",
+							"// c.show()\n",
+							"// def testfunc(a: Column): Column  = {\n",
+							"// //https://stackoverflow.com/questions/58823628/call-a-function-for-each-row-of-a-dataframe-in-pysparknon-pandas\n",
+							"// a + 10\n",
+							"// }\n",
+							"// val d = df.withColumn(\"NA_Sales\", testfunc(col(\"NA_Sales\")))\n",
+							"\n",
+							"\n",
+							"// z.show()\n",
+							"\n",
+							"\n",
+							"// val x = df.map(x => x)\n",
+							""
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"\n",
+							"\n",
+							"//NOTES: this has a map on a dataframe https://spark.apache.org/docs/2.2.0/sql-programming-guide.html#inferring-the-schema-using-reflection\n",
+							"// https://databricks.com/blog/2016/07/14/a-tale-of-three-apache-spark-apis-rdds-dataframes-and-datasets.html\n",
+							"\n",
+							"//BIG NOTES: here's a guiy who actually talks about using a map too https://stackoverflow.com/a/57428370/11832338\n",
+							"// BIG NOTE: THIS ONE HAS A MULTIDIMENSIONAL DATASET? dataset is the key here; it's the new RDD https://spark.apache.org/docs/latest/sql-getting-started.html#creating-datasets\n",
+							"\n",
+							"\n",
+							"val nasales=df.filter(\"NA_Sales > 30\")\n",
+							"val test = df.map(a => \n",
+							"    if(a.getAs(\"Platform\") == \"Wii\") {\n",
+							"        \"🥡\"\n",
+							"    } else { \n",
+							"    \"f\"\n",
+							"    }\n",
+							")\n",
+							"\n",
+							"\n",
+							"\n",
+							"val test3 = df.withColumn(\"emoji\", when($\"Platform\" === \"Wii\", \"🥡\"))\n",
+							"val test3a = df.withColumn(\"emoji\", when($\"Platform\" === \"Wii\", \"🥡\").otherwise(\"f\"))\n",
+							"val leadingZero = df.withColumn(\"leadingZeroes\", lit(\"00003\"))\n",
+							"val leadingZero_cleared = leadingZero.withColumn(\"leadingZeroes\", regexp_replace(col(\"leadingZeroes\"),\"0+\",\"\"))\n",
+							"\n",
+							"val x = new scala.util.Random().nextInt()\n",
+							"test.show()\n",
+							"test3.show()\n",
+							"test3a.show()\n",
+							"test3a.explain()\n",
+							"leadingZero.show()\n",
+							"leadingZero_cleared.show()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"// kmeans test\n",
+							"val kmeans = new KMeans().setk(2).setSeed(1L)\n",
+							"\n",
+							"val model = kmeans.fit(df)\n",
+							"val predictions = model.transform(df)\n",
+							"\n",
+							"// Evaluate clustering by computing Silhouette score\n",
+							"val evaluator = new ClusteringEvaluator()\n",
+							"\n",
+							"val silhouette = evaluator.evaluate(predictions)\n",
+							"println(s\"Silhouette with squared euclidean distance = $silhouette\")\n",
+							"\n",
+							"// Shows the result.\n",
+							"println(\"Cluster Centers: \")\n",
+							"model.clusterCenters.foreach(println)"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"//Select except\r\n",
+							"val a = Seq(\r\n",
+							"    (\"1\",\r\n",
+							"    \"3\")\r\n",
+							").toDF(\"One\",\"Three\")\r\n",
+							"\r\n",
+							"val b = Seq(\r\n",
+							"    (\"3\",\r\n",
+							"    \"1\")\r\n",
+							").toDF(\"One\",\"Three\")\r\n",
+							"\r\n",
+							"a.createOrReplaceTempView(\"a\")\r\n",
+							"b.createOrReplaceTempView(\"b\")\r\n",
+							"spark.sql(\"select * from a except select * from b \")\r\n",
+							"\r\n",
+							""
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 1
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/vgsales_pytest')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2"
+					}
+				},
+				"metadata": {
+					"saveOutput": false,
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+						"name": "testpool",
+						"type": "Spark",
+						"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					}
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {
+							"diagram": {
+								"activateDiagramType": 1,
+								"chartConfig": {
+									"category": "bar",
+									"keys": [
+										"_c0"
+									],
+									"values": [
+										"_c0"
+									],
+									"yLabel": "_c0",
+									"xLabel": "_c0",
+									"aggregation": "COUNT",
+									"aggByBackend": false
+								},
+								"aggData": "{\"_c0\":{\"1\":1,\"2\":1,\"3\":1,\"4\":1,\"5\":1,\"6\":1,\"7\":1,\"8\":1,\"9\":1,\"Rank\":1}}",
+								"isSummary": false,
+								"previewData": {
+									"filter": null
+								},
+								"isSql": false
+							}
+						},
+						"source": [
+							"\n",
+							"df = spark.read.format(\"csv\").load(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/vgsales.csv\")\n",
+							"display(df.limit(10))"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 1
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/viewtest')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1"
+					},
+					"kernelspec": {
+						"name": "synapse_spark",
+						"display_name": "Synapse Spark"
+					},
+					"language_info": {
+						"name": "scala"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+						"name": "testpool",
+						"type": "Spark",
+						"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					}
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"val a =Seq(\r\n",
+							"    (\"1\",\r\n",
+							"    \"3\")\r\n",
+							").toDF(\"One\",\"Three\")\r\n",
+							"\r\n",
+							"val b =Seq(\r\n",
+							"    (\"3\",\r\n",
+							"    \"4\")\r\n",
+							").toDF(\"One\",\"Three\")\r\n",
+							"\r\n",
+							"a.createOrReplaceTempView(\"ninaa\")\r\n",
+							"\r\n",
+							"\r\n",
+							"spark.sql(\"SELECT * from ninaa\").show\r\n",
+							"spark.sql(\"Create view asdf as select * from ninaa\")\r\n",
+							"spark.sql(\"SELECT * from asdf\").show\r\n",
+							"val d = a.union(b)\r\n",
+							"spark.sql(\"SELECT * from ninaa\").show\r\n",
+							"spark.sql(\"SELECT * from asdf\").show\r\n",
+							"d.show()"
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": 9
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							""
+						],
+						"attachments": null,
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		}
+	]
+}
