@@ -44,8 +44,9 @@
 				"nodeCount": 10,
 				"cores": 4,
 				"memory": 28,
-				"extraHeader": null
-			}
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
 		},
 		"cells": [
 			{
@@ -104,7 +105,7 @@
 					"\n",
 					"a.show()\n",
 					"b.show()\n",
-					"df.\n",
+					"// df.\n",
 					"// c.show()\n",
 					"// def testfunc(a: Column): Column  = {\n",
 					"// //https://stackoverflow.com/questions/58823628/call-a-function-for-each-row-of-a-dataframe-in-pysparknon-pandas\n",
@@ -119,8 +120,7 @@
 					"// val x = df.map(x => x)\n",
 					""
 				],
-				"attachments": null,
-				"execution_count": 1
+				"execution_count": 2
 			},
 			{
 				"cell_type": "code",
@@ -158,13 +158,14 @@
 					"leadingZero.show()\n",
 					"leadingZero_cleared.show()"
 				],
-				"attachments": null,
-				"execution_count": null
+				"execution_count": 3
 			},
 			{
 				"cell_type": "code",
 				"source": [
 					"// kmeans test\n",
+					"import org.apache.spark.mllib._\n",
+					"import org.apache.spark.ml.clustering.KMeans\n",
 					"val kmeans = new KMeans().setk(2).setSeed(1L)\n",
 					"\n",
 					"val model = kmeans.fit(df)\n",
@@ -180,8 +181,7 @@
 					"println(\"Cluster Centers: \")\n",
 					"model.clusterCenters.foreach(println)"
 				],
-				"attachments": null,
-				"execution_count": null
+				"execution_count": 6
 			},
 			{
 				"cell_type": "code",
@@ -215,8 +215,7 @@
 					"\r\n",
 					""
 				],
-				"attachments": null,
-				"execution_count": 1
+				"execution_count": null
 			}
 		]
 	}
