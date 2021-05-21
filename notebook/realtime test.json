@@ -46,7 +46,7 @@
 				"memory": 28,
 				"automaticScaleJobs": false
 			},
-			"sessionKeepAliveTimeout": 1
+			"sessionKeepAliveTimeout": 5
 		},
 		"cells": [
 			{
@@ -56,9 +56,10 @@
 					"from pyspark.streaming import StreamingContext\r\n",
 					"\r\n",
 					"spark.readStream.csv(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/test/\",schema=\r\n",
-					"spark.read.csv(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/test/\").schema).writeStream.format(\"console\").start()"
+					"spark.read.csv(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/test/\").schema).writeStream.format(\"console\").start()\r\n",
+					""
 				],
-				"execution_count": 6
+				"execution_count": 8
 			},
 			{
 				"cell_type": "code",
