@@ -12,11 +12,11 @@
 			"driverCores": 4,
 			"executorMemory": "28g",
 			"executorCores": 4,
-			"numExecutors": 2,
+			"numExecutors": 1,
 			"conf": {
 				"spark.dynamicAllocation.enabled": "false",
-				"spark.dynamicAllocation.minExecutors": "2",
-				"spark.dynamicAllocation.maxExecutors": "2"
+				"spark.dynamicAllocation.minExecutors": "1",
+				"spark.dynamicAllocation.maxExecutors": "1"
 			}
 		},
 		"metadata": {
@@ -26,7 +26,7 @@
 			},
 			"kernelspec": {
 				"name": "synapse_pyspark",
-				"display_name": "python"
+				"display_name": "Synapse PySpark"
 			},
 			"language_info": {
 				"name": "python"
@@ -46,7 +46,7 @@
 				"memory": 28,
 				"automaticScaleJobs": false
 			},
-			"sessionKeepAliveTimeout": 30
+			"sessionKeepAliveTimeout": 1
 		},
 		"cells": [
 			{
@@ -57,7 +57,7 @@
 					"\r\n",
 					"spark.readStream.csv(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/test/\")"
 				],
-				"execution_count": null
+				"execution_count": 1
 			}
 		]
 	}
