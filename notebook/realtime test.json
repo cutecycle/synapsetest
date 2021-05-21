@@ -55,11 +55,11 @@
 					"from pyspark import SparkContext\r\n",
 					"from pyspark.streaming import StreamingContext\r\n",
 					"\r\n",
-					"spark.readStream.csv(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/test/\",schema=\r\n",
-					"spark.read.csv(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/test/\").schema).writeStream.format(\"console\").start()\r\n",
+					"spark.readStream.csv(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/test/*\",schema=\r\n",
+					"spark.read.csv(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/test/*\").schema).writeStream.format(\"console\").outputMode(\"update\").start().awaitTermination()\r\n",
 					""
 				],
-				"execution_count": 8
+				"execution_count": 4
 			},
 			{
 				"cell_type": "code",
