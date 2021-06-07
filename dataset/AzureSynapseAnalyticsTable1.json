@@ -5,15 +5,15 @@
 			"referenceName": "ninassynapseworkspace-WorkspaceDefaultSqlServer",
 			"type": "LinkedServiceReference",
 			"parameters": {
-				"DBName": "hello"
+				"DBName": "helloworld"
 			}
 		},
 		"annotations": [],
 		"type": "AzureSqlDWTable",
 		"schema": [],
 		"typeProperties": {
-			"schema": "dbo",
-			"table": "blah"
+			"schema": "sys",
+			"table": "database_principals"
 		}
 	}
 }
