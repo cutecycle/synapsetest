@@ -21,6 +21,70 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('workspaceName'), '/Pipeline 1')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup1",
+						"description": "c",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlDWSource",
+								"sqlReaderQuery": "create view asdf as (select null  as hello )",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSynapseAnalyticsTable1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/AzureSynapseAnalyticsTable1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureSynapseAnalyticsTable1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ninassynapseworkspace-WorkspaceDefaultSqlServer",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"DBName": "helloworld"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "sys",
+					"table": "database_principals"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ninassynapseworkspace-WorkspaceDefaultSqlServer')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/Dataset')]",
 			"type": "Microsoft.Synapse/workspaces/datasets",
 			"apiVersion": "2019-06-01-preview",
@@ -156,19 +220,40 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 3')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://ninasdatalake.dfs.core.windows.net/test/vgsales.csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION='2.0'\n    ) AS [result]\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"poolName": "Built-in",
+						"databaseName": "master"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/vgsales')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"content": {
-					"query": "-- CREATE EXTERNAL TABLE [dbo].[vgsales]\n\n-- WITH\n-- (\n-- \tLOCATION = 'https://ninasdatalake.blob.core.windows.net/test',\n-- \tDATA_SOURCE = [vgsales.csv],\n-- \tFILE_FORMAT = [csv]\n-- )\nCREATE EXTERNAL DATA SOURCE vgsales\nWITH\n(    LOCATION         = 'https://ninasdatalake.blob.core.windows.net/test/vgsales.csv'\n    --  [, CREDENTIAL = <database scoped credential> ]\n)\n-- [;]",
+					"query": "select null  as hello ",
 					"metadata": {
 						"language": "sql"
 					},
 					"currentConnection": {
 						"poolName": "Built-in",
 						"databaseName": "testsql"
-					}
+					},
+					"resultLimit": 5000
 				},
 				"type": "SqlQuery"
 			},
@@ -603,14 +688,6 @@
 				},
 				"metadata": {
 					"saveOutput": true,
-					"synapse_widget": {
-						"version": "0.1",
-						"state": {}
-					},
-					"kernelspec": {
-						"name": "synapse_spark",
-						"display_name": "scala"
-					},
 					"language_info": {
 						"name": "scala"
 					},
@@ -626,15 +703,12 @@
 						"sparkVersion": "2.4",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
-					},
-					"sessionKeepAliveTimeout": 30
+						"memory": 28
+					}
 				},
 				"cells": [
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"val x: Map[String,Int] = Map( \n",
 							"    \"a\" -> 3000,\n",
@@ -656,10 +730,7 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
-						"source": [
-							""
-						],
+						"source": [],
 						"outputs": [],
 						"execution_count": 10
 					}
@@ -693,8 +764,7 @@
 				"metadata": {
 					"saveOutput": true,
 					"synapse_widget": {
-						"version": "0.1",
-						"state": {}
+						"version": "0.1"
 					},
 					"kernelspec": {
 						"name": "synapse_spark",
@@ -715,15 +785,12 @@
 						"sparkVersion": "2.4",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
-					},
-					"sessionKeepAliveTimeout": 30
+						"memory": 28
+					}
 				},
 				"cells": [
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"val x: Map[String,Int] = Map( \n",
 							"    \"a\" -> 3000,\n",
@@ -745,12 +812,99 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							""
 						],
 						"outputs": [],
 						"execution_count": 10
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/realtime test')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "testpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 1,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "1",
+						"spark.dynamicAllocation.maxExecutors": "1"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1"
+					},
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
+						"name": "testpool",
+						"type": "Spark",
+						"endpoint": "https://ninassynapseworkspace.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					}
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"from pyspark import SparkContext\r\n",
+							"from pyspark.streaming import StreamingContext\r\n",
+							"\r\n",
+							"spark.readStream.csv(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/test/*\",schema=\r\n",
+							"spark.read.csv(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/test/*\").schema).writeStream.format(\"console\").outputMode(\"update\").start().show()\r\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 6
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							""
+						],
+						"outputs": [],
+						"execution_count": null
 					}
 				]
 			},
