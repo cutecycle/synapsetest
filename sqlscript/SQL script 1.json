@@ -2,7 +2,7 @@
 	"name": "SQL script 1",
 	"properties": {
 		"content": {
-			"query": "\n-- https://docs.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-service-principal-tutorial\n-- https://docs.microsoft.com/en-us/azure/synapse-analytics/security/how-to-set-up-access-control#step-7-grant-access-to-sql-pools\n-- By default, all users assigned the Synapse Administrator role are also assigned the SQL db_owner role on the serverless SQL pool, 'Built-in', and all its databases.\nCREATE USER [ddcadf1f-5358-49c0-b637-84dad5d97385] from external provider\nalter role db_datareader add member [ddcadf1f-5358-49c0-b637-84dad5d97385]\nselect  * from sys.database_principals \nselect * from sys.database_role_members\n",
+			"query": "\n-- https://docs.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-service-principal-tutorial\n-- https://docs.microsoft.com/en-us/azure/synapse-analytics/security/how-to-set-up-access-control#step-7-grant-access-to-sql-pools\n-- By default, all users assigned the Synapse Administrator role are also assigned the SQL db_owner role on the serverless SQL pool, 'Built-in', and all its databases.\n-- no wait:  workspace MSI is controlled using SQL permissions. \nCREATE USER [ddcadf1f-5358-49c0-b637-84dad5d97385] from external provider\nalter role db_datareader add member [ddcadf1f-5358-49c0-b637-84dad5d97385]\nselect  * from sys.database_principals \nselect * from sys.database_role_members\n",
 			"metadata": {
 				"language": "sql"
 			},
