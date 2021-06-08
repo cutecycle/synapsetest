@@ -2,14 +2,15 @@
 	"name": "SQL script 1",
 	"properties": {
 		"content": {
-			"query": "select top 10 *\nfrom openrowset(\n    bulk 'https://pandemicdatalake.blob.core.windows.net/public/curated/covid-19/ecdc_cases/latest/ecdc_cases.parquet',\n    format = 'parquet') as rows",
+			"query": "\n-- CREATE USER [ninassynapseworkspace] from external provider\n-- alter role db_datareader add member [ninassynapseworkspace]\nselect  * from sys.database_principals \nselect * from sys.database_role_members\n",
 			"metadata": {
 				"language": "sql"
 			},
 			"currentConnection": {
 				"poolName": "Built-in",
-				"databaseName": "testsql"
-			}
+				"databaseName": "helloworld"
+			},
+			"resultLimit": 5000
 		},
 		"type": "SqlQuery"
 	}
