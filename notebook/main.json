@@ -22,8 +22,8 @@
 		"metadata": {
 			"saveOutput": true,
 			"kernelspec": {
-				"name": "synapse_spark",
-				"display_name": "scala"
+				"name": "synapse_sparkdotnet",
+				"display_name": "Synapse SparkDotNet"
 			},
 			"language_info": {
 				"name": "csharp"
@@ -73,9 +73,9 @@
 					}
 				},
 				"source": [
-					"%%run call"
+					"%run call"
 				],
-				"execution_count": 8
+				"execution_count": 2
 			}
 		]
 	}
