@@ -21,8 +21,12 @@
 		},
 		"metadata": {
 			"saveOutput": true,
+			"kernelspec": {
+				"name": "synapse_spark",
+				"display_name": "scala"
+			},
 			"language_info": {
-				"name": "scala"
+				"name": "csharp"
 			},
 			"a365ComputeOptions": {
 				"id": "/subscriptions/f4e62a92-045d-48b7-9c6e-db2b533d2ae3/resourceGroups/ninatestrg/providers/Microsoft.Synapse/workspaces/ninassynapseworkspace/bigDataPools/testpool",
@@ -36,8 +40,10 @@
 				"sparkVersion": "2.4",
 				"nodeCount": 10,
 				"cores": 4,
-				"memory": 28
-			}
+				"memory": 28,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
 		},
 		"cells": [
 			{
@@ -67,11 +73,8 @@
 					}
 				},
 				"source": [
-					"\n",
-					"val df = spark.read.format(\"csv\").load(\"abfss://synapse@ninasdatalake.dfs.core.windows.net/KCLT.csv\")\n",
-					"display(df.limit(10))"
+					"%%run call"
 				],
-				"attachments": null,
 				"execution_count": 8
 			}
 		]
